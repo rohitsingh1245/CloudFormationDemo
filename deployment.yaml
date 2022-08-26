@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Cloud Formation Demo"
+Parameters:
+  Environment:
+    Description: "Environment Name"
+    Type: String
+
+Resources:
+  lambdaFunctionIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+      Policies:
+        - PolicyName: "cloud-formation-demo-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+
+  lambdaFuntion:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "Cloud Formation Demo"
+      FunctionName: !Sub cloud-formation-demo${Environment}
+      Handler: CloudFormationDemo::CloudFormationDemo.Function::FunctionHandler
+      Environment:
+        Variables:
+          key1: value1
+      Runtime: "dotnet6"
+      Timeout: 30
+      MemorySize: 128
+      Role: !GetAtt lambdaFunctionIamRole.Arn
+      Code:
+        S3Bucket: cloud-formation-demo-package
+        S3Key: lambda.zip
