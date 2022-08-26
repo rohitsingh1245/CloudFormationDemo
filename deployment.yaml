@@ -26,6 +26,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
+                Resource: "*"
 
   lambdaFuntion:
     Type: AWS::Lambda::Function
