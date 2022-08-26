@@ -6,6 +6,11 @@ Parameters:
     Type: String
 
 Resources:
+  sqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub cloud-formation-demo-queue${Environment}
+
   lambdaFunctionIamRole:
     Type: AWS::IAM::Role
     Properties:
@@ -27,6 +32,26 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: "*"
+
+        - PolicyName: "allowSqs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - sqs:DeleteMessage
+                  - sqs:ReceiveMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                Resource: !GetAtt sqsQueue.Arn
+
+  lambdaFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10
+      Enabled: true
+      EventSourceArn: !GetAtt sqsQueue.Arn
+      FunctionName: !GetAtt lambdaFuntion.Arn
 
   lambdaFuntion:
     Type: AWS::Lambda::Function
